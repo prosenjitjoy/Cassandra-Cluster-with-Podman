@@ -1,39 +1,19 @@
 # Cassandra-Cluster-with-Podman
-Cassandra cluster setup guide using podman
-
-# 🚀 Manual:
+Cassandra single datacenter or multi datacenter cluster setup guide using podman
 
 ### Step 1
-Create separate network for you Cassandra nodes
-```bash
-podman network create cluster
+Clone this repo and cd into it.
 ```
-
-### Step 2
-Add the first node of cassandra cluster. Then wait a minute for the node to configure itself.
-```bash
-podman run --name nodeX --network cluster --hostname nodeX -m 1.2G -d cassandra:latest
-sleep 60
+git clone https://github.com/prosenjitjoy/Cassandra-Cluster-with-Podman.git
+cd Cassandra-Cluster-with-Podman
 ```
-### Step 3
-Add the second node of cassandra cluster. Then wait a minute for the node to configure itself.
-```bash
-podman run --name nodeY --network cluster --hostname nodeY -e CASSANDRA_SEEDS=nodeX -m 1.2G -d cassandra:latest
-sleep 60
+### Step 2a
+Run the following commands and if you want to setup 3 node single datacenter cluster. SimpleSnitch is enabled by default. So, the cluster is not rack aware.
 ```
-
-### Step 4
-Add the third node of cassandra cluster. Then wait a minute for the node to configure itself.
-```bash
-podman run --name nodeZ --network cluster --hostname nodeZ -e CASSANDRA_SEEDS=nodeX,nodeY -m 1.2G -d cassandra:latest
-sleep 60
+chmod +x ./single-datacenter.sh
+./single-datacenter.sh
 ```
-### Step 5
-To view your cluster setup run the following using any node. For this example I used NodeX.
-```bash
-podman exec -it NodeX nodetool status
-```
-output is similar to this one
+Cluster status is similar to this one.
 ```bash
 Datacenter: datacenter1
 =======================
@@ -44,10 +24,27 @@ UN  10.89.0.4  25.57 KiB   16      76.0%             ea8d0755-3292-4730-b737-7be
 UN  10.89.0.2  109.38 KiB  16      64.7%             e84c3b9c-e03e-474e-a931-9aae4e0ed16c  rack1
 UN  10.89.0.3  104.36 KiB  16      59.3%             841f54f4-bcac-4944-8516-933ca231da04  rack1
 ```
-
-# 🧞 Automatic
-Clone this repo and cd into it. Then run the following commands and you are done.
+### Step 2b
+Run the following commands and if you want to setup multi datacenter cluster each having 2 nodes. GossipingPropertyFileSnitch is enabled. So, the cluster is rack aware.
 ```
-chmod +x ./create-cluster.sh
-./create-cluster.sh
+chmod +x ./multi-datacenter.sh
+./multi-datacenter.sh
+```
+Cluster status is similar to this one.
+```bash
+Datacenter: datacenter1
+=======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address    Load        Tokens  Owns (effective)  Host ID                               Rack 
+UN  10.89.0.2  109.42 KiB  16      48.8%             9977d520-df64-4578-b20d-f8b71338632a  rack1
+UN  10.89.0.3  75.19 KiB   16      50.5%             54c76e0a-73b0-40e9-82bd-da255090186b  rack2
+
+Datacenter: datacenter2
+=======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address    Load        Tokens  Owns (effective)  Host ID                               Rack 
+UN  10.89.0.4  70.24 KiB   16      48.7%             3dc86058-005d-4a8f-8af6-66268bea9f06  rack1
+UN  10.89.0.5  109.25 KiB  16      52.0%             84138b43-c6e9-4e8e-a81b-34fb6b206ed1  rack2
 ```
